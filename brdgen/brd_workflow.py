@@ -1,6 +1,7 @@
 from langgraph.graph import END, StateGraph, START
 from brd_gen_agent import BRDGenerator
 from brd_reflection_agent import BRDRevisor
+from brd_tool_executor import BRDExternalTool
 from dotenv import load_dotenv
 from brd_state import BRDState
 from brd_utility import Utility
@@ -29,7 +30,7 @@ class BRDGraphNode:
                 "iteration_count": 0,
             }
         except Exception as e:
-            print(e)
+            print(e) #TODO log error
             return {
                 "assessment_text": state["assessment_text"],
                 "brd_content": None,
@@ -66,6 +67,22 @@ class BRDGraphNode:
             print(e)
             return state
 
+    def exec_tool_brd(self, state: BRDState) -> BRDState:
+        try:
+            brdtool = BRDExternalTool() # TODO Sample Tool. Replace with actual tool
+            brd_content_tool = brdtool.search()
+            updated_brd = state["brd_content"] + brd_content_tool
+            print("BRD updated with external tool")
+            return {
+                 "assessment_text": state["assessment_text"],
+                 "brd_content": updated_brd,
+                 "iteration_count": state["iteration_count"],
+            }
+            return state
+        except Exception as e:
+            print(e)
+            return state
+
 
 def create_brd_workflow() -> StateGraph:
     # Initialize components
@@ -77,14 +94,15 @@ def create_brd_workflow() -> StateGraph:
 
     # Add nodes
     workflow.add_node("generate_brd", node.generate_brd)
-    workflow.add_node("refine_brd", node.refine_brd)
+    workflow.add_node("self_refine_brd", node.refine_brd)
+    workflow.add_node("exec_tool", node.exec_tool_brd)
     workflow.add_node("save_brd", node.save_brd)
 
     # Set entry point
     workflow.set_entry_point("generate_brd")
-
-    # Add regular edge from generate_brd to refine_brd
-    workflow.add_edge("generate_brd", "refine_brd")
+    
+    workflow.add_edge("generate_brd", "exec_tool")
+    workflow.add_edge("exec_tool", "self_refine_brd")
 
     # Define conditional edges for refine_brd
     def route_refinement(state: BRDState) -> str:
@@ -93,9 +111,9 @@ def create_brd_workflow() -> StateGraph:
         return "refinement_complete"
 
     workflow.add_conditional_edges(
-        "refine_brd",
+        "self_refine_brd",
         route_refinement,
-        {"continue_refinement": "refine_brd", "refinement_complete": "save_brd"},
+        {"continue_refinement": "self_refine_brd", "refinement_complete": "save_brd"},
     )
 
     # Add edge from save_brd to END
