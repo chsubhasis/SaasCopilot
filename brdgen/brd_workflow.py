@@ -30,7 +30,7 @@ class BRDGraphNode:
                 "iteration_count": 0,
             }
         except Exception as e:
-            print(e) #TODO log error
+            print(e)  # TODO log error
             return {
                 "assessment_text": state["assessment_text"],
                 "brd_content": None,
@@ -69,14 +69,14 @@ class BRDGraphNode:
 
     def exec_tool_brd(self, state: BRDState) -> BRDState:
         try:
-            brdtool = BRDExternalTool() # TODO Sample Tool. Replace with actual tool
+            brdtool = BRDExternalTool()  # TODO Sample Tool. Replace with actual tool
             brd_content_tool = brdtool.search()
             updated_brd = state["brd_content"] + brd_content_tool
             print("BRD updated with external tool")
             return {
-                 "assessment_text": state["assessment_text"],
-                 "brd_content": updated_brd,
-                 "iteration_count": state["iteration_count"],
+                "assessment_text": state["assessment_text"],
+                "brd_content": updated_brd,
+                "iteration_count": state["iteration_count"],
             }
             return state
         except Exception as e:
@@ -100,7 +100,7 @@ def create_brd_workflow() -> StateGraph:
 
     # Set entry point
     workflow.set_entry_point("generate_brd")
-    
+
     workflow.add_edge("generate_brd", "exec_tool")
     workflow.add_edge("exec_tool", "self_refine_brd")
 
