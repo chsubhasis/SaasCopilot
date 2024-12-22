@@ -9,3 +9,4 @@ transformers
 sentence-transformers
 langchain_huggingface
 langgraph
+black
