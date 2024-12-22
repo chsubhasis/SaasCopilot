@@ -29,7 +29,7 @@ class BRDGraphNode:
                 "assessment_text": state["assessment_text"],
                 "brd_content": brd_initial_content,
                 "iteration_count": 0,
-                "rag_result": state["rag_result"]
+                "rag_result": state["rag_result"],
             }
         except Exception as e:
             print(e)  # TODO log error
@@ -37,7 +37,7 @@ class BRDGraphNode:
                 "assessment_text": state["assessment_text"],
                 "brd_content": None,
                 "iteration_count": 0,
-                "rag_result": state["rag_result"]
+                "rag_result": state["rag_result"],
             }
 
     def refine_brd(self, state: BRDState) -> BRDState:
@@ -49,7 +49,7 @@ class BRDGraphNode:
                 "assessment_text": state["assessment_text"],
                 "brd_content": brd_revised_content,
                 "iteration_count": state["iteration_count"] + 1,
-                "rag_result": state["rag_result"]
+                "rag_result": state["rag_result"],
             }
         except Exception as e:
             print(e)
@@ -57,7 +57,7 @@ class BRDGraphNode:
                 "assessment_text": state["assessment_text"],
                 "brd_content": None,
                 "iteration_count": state["iteration_count"],
-                "rag_result": state["rag_result"]
+                "rag_result": state["rag_result"],
             }
 
     def save_brd(self, state: BRDState) -> BRDState:
@@ -82,7 +82,7 @@ class BRDGraphNode:
                 "assessment_text": state["assessment_text"],
                 "brd_content": updated_brd,
                 "iteration_count": state["iteration_count"],
-                "rag_result": state["rag_result"]
+                "rag_result": state["rag_result"],
             }
             return state
         except Exception as e:
@@ -93,7 +93,7 @@ class BRDGraphNode:
         try:
             brdrag = BRDRAG()
             assessment_document_paths = [
-                'new_assessment.pdf' #TODO - replace with actual path
+                "new_assessment.pdf"  # TODO - replace with actual path
             ]
             brdrag.loadVector(assessment_document_paths)
             result = brdrag.retrieveResult("What is the purpose of the assessment?")
@@ -104,12 +104,13 @@ class BRDGraphNode:
                 "assessment_text": state["assessment_text"],
                 "brd_content": state["brd_content"],
                 "iteration_count": state["iteration_count"],
-                "rag_result": rag_result
+                "rag_result": rag_result,
             }
             return state
         except Exception as e:
             print(e)
             return state
+
 
 def create_brd_workflow() -> StateGraph:
     # Initialize components
@@ -128,7 +129,7 @@ def create_brd_workflow() -> StateGraph:
 
     # Set entry point
     workflow.set_entry_point("retrieve_vector")
-   
+
     # Add edges
     workflow.add_edge("retrieve_vector", "generate_brd")
     workflow.add_edge("generate_brd", "exec_tool_brd")
