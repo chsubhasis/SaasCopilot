@@ -1,0 +1,11 @@
+python-docx
+PyPDF2
+pypdf
+gradio
+mistralai
+langchain_community
+torch
+transformers
+sentence-transformers
+langchain_huggingface
+langgraph
