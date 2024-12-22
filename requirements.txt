@@ -11,3 +11,4 @@ langchain_huggingface
 langgraph
 black
 tavily-python
+cassio

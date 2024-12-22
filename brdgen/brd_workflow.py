@@ -83,6 +83,10 @@ class BRDGraphNode:
             print(e)
             return state
 
+    def retrieve_vector(self, state: BRDState) -> BRDState:
+        print("Retrieved vector")
+        pass
+
 
 def create_brd_workflow() -> StateGraph:
     # Initialize components
@@ -94,15 +98,17 @@ def create_brd_workflow() -> StateGraph:
 
     # Add nodes
     workflow.add_node("generate_brd", node.generate_brd)
-    workflow.add_node("self_refine_brd", node.refine_brd)
     workflow.add_node("exec_tool", node.exec_tool_brd)
+    workflow.add_node("retrieve_vector", node.retrieve_vector)
+    workflow.add_node("self_refine_brd", node.refine_brd)
     workflow.add_node("save_brd", node.save_brd)
 
     # Set entry point
     workflow.set_entry_point("generate_brd")
 
     workflow.add_edge("generate_brd", "exec_tool")
-    workflow.add_edge("exec_tool", "self_refine_brd")
+    workflow.add_edge("exec_tool", "retrieve_vector")
+    workflow.add_edge("retrieve_vector", "self_refine_brd")
 
     # Define conditional edges for refine_brd
     def route_refinement(state: BRDState) -> str:
