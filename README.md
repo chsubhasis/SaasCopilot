@@ -1,6 +1,8 @@
 # SaasCoplit
 
-Create a local virtual environment, for example using the venv module. Then, activate it. python -m venv venv source venv/bin/activate
+Create a local virtual environment, for example using the venv module. Then, activate it. 
+python -m venv venv 
+source venv/bin/activate
 
 Install the dependencies. pip install -r requirements.txt
 
@@ -9,7 +11,7 @@ Launch the app python app.py
 #####################################
 
 TODO items:
-- RAG
+- Use rag output in generate_brd
 - FAST API
 - Gradio
 - LangSmith

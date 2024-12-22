@@ -10,10 +10,9 @@ import os
 
 load_dotenv()
 
-ASTRA_DB_APPLICATION_TOKEN = os.getenv("TAVILY_API_KEY")
+ASTRA_DB_APPLICATION_TOKEN = os.getenv("ASTRA_DB_APPLICATION_TOKEN")
 ASTRA_DB_ID = os.getenv("ASTRA_DB_ID")
 cassio.init(token=ASTRA_DB_APPLICATION_TOKEN,database_id=ASTRA_DB_ID)
-print("Cassio initialized. Session: %s", cassio.get_session())
 
 class BRDRAG:
     def __init__(self):
@@ -25,9 +24,9 @@ class BRDRAG:
             session=None,
             keyspace=None
         )
-        self.retriever=astra_vector_store.as_retriever()
+        self.retriever=self.astra_vector_store.as_retriever()
 
-    def load_documents(document_paths: List[str]) -> List[Dict]:
+    def load_documents(self, document_paths: List[str]) -> List[Dict]:
         documents = []
         for path in document_paths:
             if path.lower().endswith('.pdf'):
@@ -47,7 +46,7 @@ class BRDRAG:
 
         return documents
     
-    def splitDoc(documents):
+    def splitDoc(self, documents):
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size = 512,
             chunk_overlap = 128
@@ -56,22 +55,22 @@ class BRDRAG:
         splits = text_splitter.split_documents(documents)
         return splits
     
-    def loadVector(assessment_document_paths: List[str]):
-        documents = load_documents(assessment_document_paths)
-        doc_splits = splitDoc(documents)
+    def loadVector(self, assessment_document_paths: List[str]):
+        documents = self.load_documents(assessment_document_paths)
+        doc_splits = self.splitDoc(documents)
         self.astra_vector_store.add_documents(doc_splits)
-        print("Inserted %i headlines." % len(doc_splits))
+        print("Inserted %i splits." % len(doc_splits))
     
-    def retrieveResult(query: str):
+    def retrieveResult(self, query: str):
         results = self.retriever.invoke(query, ConsistencyLevel="LOCAL_ONE")
         return results
-
+"""
 if __name__ == "__main__":
     brd_rag = BRDRAG()
     assessment_document_paths = [
        'new_assessment.pdf'
     ]
     brd_rag.loadVector(assessment_document_paths)
-    print(brd_rag.retrieveResult("What is the purpose of the assessment?"))
-
-
+    result = brd_rag.retrieveResult("What is the purpose of the assessment?")
+    print(result[0])
+"""

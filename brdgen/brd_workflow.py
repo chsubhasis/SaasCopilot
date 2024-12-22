@@ -1,6 +1,7 @@
 from langgraph.graph import END, StateGraph, START
 from brd_gen_agent import BRDGenerator
 from brd_reflection_agent import BRDRevisor
+from brd_rag_agent import BRDRAG
 from brd_tool_executor import BRDExternalTool
 from dotenv import load_dotenv
 from brd_state import BRDState
@@ -28,6 +29,7 @@ class BRDGraphNode:
                 "assessment_text": state["assessment_text"],
                 "brd_content": brd_initial_content,
                 "iteration_count": 0,
+                "rag_result": state["rag_result"]
             }
         except Exception as e:
             print(e)  # TODO log error
@@ -35,6 +37,7 @@ class BRDGraphNode:
                 "assessment_text": state["assessment_text"],
                 "brd_content": None,
                 "iteration_count": 0,
+                "rag_result": state["rag_result"]
             }
 
     def refine_brd(self, state: BRDState) -> BRDState:
@@ -46,6 +49,7 @@ class BRDGraphNode:
                 "assessment_text": state["assessment_text"],
                 "brd_content": brd_revised_content,
                 "iteration_count": state["iteration_count"] + 1,
+                "rag_result": state["rag_result"]
             }
         except Exception as e:
             print(e)
@@ -53,6 +57,7 @@ class BRDGraphNode:
                 "assessment_text": state["assessment_text"],
                 "brd_content": None,
                 "iteration_count": state["iteration_count"],
+                "rag_result": state["rag_result"]
             }
 
     def save_brd(self, state: BRDState) -> BRDState:
@@ -77,6 +82,7 @@ class BRDGraphNode:
                 "assessment_text": state["assessment_text"],
                 "brd_content": updated_brd,
                 "iteration_count": state["iteration_count"],
+                "rag_result": state["rag_result"]
             }
             return state
         except Exception as e:
@@ -84,9 +90,26 @@ class BRDGraphNode:
             return state
 
     def retrieve_vector(self, state: BRDState) -> BRDState:
-        print("Retrieved vector")
-        pass
-
+        try:
+            brdrag = BRDRAG()
+            assessment_document_paths = [
+                'new_assessment.pdf' #TODO - replace with actual path
+            ]
+            brdrag.loadVector(assessment_document_paths)
+            result = brdrag.retrieveResult("What is the purpose of the assessment?")
+            rag_result = result[0]
+            state["rag_result"] = rag_result
+            print("Retrieved vector from RAG")
+            return {
+                "assessment_text": state["assessment_text"],
+                "brd_content": state["brd_content"],
+                "iteration_count": state["iteration_count"],
+                "rag_result": rag_result
+            }
+            return state
+        except Exception as e:
+            print(e)
+            return state
 
 def create_brd_workflow() -> StateGraph:
     # Initialize components
@@ -97,18 +120,19 @@ def create_brd_workflow() -> StateGraph:
     workflow = StateGraph(BRDState)
 
     # Add nodes
-    workflow.add_node("generate_brd", node.generate_brd)
-    workflow.add_node("exec_tool", node.exec_tool_brd)
     workflow.add_node("retrieve_vector", node.retrieve_vector)
+    workflow.add_node("generate_brd", node.generate_brd)
+    workflow.add_node("exec_tool_brd", node.exec_tool_brd)
     workflow.add_node("self_refine_brd", node.refine_brd)
     workflow.add_node("save_brd", node.save_brd)
 
     # Set entry point
-    workflow.set_entry_point("generate_brd")
-
-    workflow.add_edge("generate_brd", "exec_tool")
-    workflow.add_edge("exec_tool", "retrieve_vector")
-    workflow.add_edge("retrieve_vector", "self_refine_brd")
+    workflow.set_entry_point("retrieve_vector")
+   
+    # Add edges
+    workflow.add_edge("retrieve_vector", "generate_brd")
+    workflow.add_edge("generate_brd", "exec_tool_brd")
+    workflow.add_edge("exec_tool_brd", "self_refine_brd")
 
     # Define conditional edges for refine_brd
     def route_refinement(state: BRDState) -> str:
@@ -122,7 +146,6 @@ def create_brd_workflow() -> StateGraph:
         {"continue_refinement": "self_refine_brd", "refinement_complete": "save_brd"},
     )
 
-    # Add edge from save_brd to END
     workflow.add_edge("save_brd", END)
 
     return workflow
