@@ -9,7 +9,6 @@ import io
 import os
 
 load_dotenv()
-
 MODEL = "mistral-large-latest"
 MAX_ITERATIONS = 2  # For self critic
 
@@ -23,44 +22,49 @@ class BRDGraphNode:
             brd_initial_content = self.brd_generator.generate_brd(
                 state["assessment_text"]
             )
-            state["brd_content"] = brd_initial_content
-            print("brd generated successfully")
+            print("BRD generated")
             return {
                 "assessment_text": state["assessment_text"],
                 "brd_content": brd_initial_content,
+                "iteration_count": 0,
             }
         except Exception as e:
             print(e)
-            # TODO: Log error
-            return {"assessment_text": state["assessment_text"], "brd_content": None}
+            return {
+                "assessment_text": state["assessment_text"],
+                "brd_content": None,
+                "iteration_count": 0,
+            }
 
     def refine_brd(self, state: BRDState) -> BRDState:
         try:
             brd_revisor = BRDRevisor(self.brd_generator, state["brd_content"])
             brd_revised_content = brd_revisor.refine_brd()
-            state["brd_content"] = brd_revised_content
-            print("brd refined successfully")
+            print("BRD refined")
             return {
                 "assessment_text": state["assessment_text"],
                 "brd_content": brd_revised_content,
+                "iteration_count": state["iteration_count"] + 1,
             }
         except Exception as e:
             print(e)
-            # TODO: Log error
-            return {"assessment_text": state["assessment_text"], "brd_content": None}
+            return {
+                "assessment_text": state["assessment_text"],
+                "brd_content": None,
+                "iteration_count": state["iteration_count"],
+            }
 
     def save_brd(self, state: BRDState) -> BRDState:
         try:
             brd_content = state["brd_content"]
             if brd_content is None:
                 raise ValueError("BRD content is empty")
-
-            # Save BRD
             brd_path = Utility.save_brd(brd_content)
             print(f"BRD saved at: {brd_path}")
             return state
         except Exception as e:
             print(e)
+            return state
 
 
 def create_brd_workflow() -> StateGraph:
@@ -70,15 +74,31 @@ def create_brd_workflow() -> StateGraph:
 
     # Create workflow
     workflow = StateGraph(BRDState)
+
+    # Add nodes
     workflow.add_node("generate_brd", node.generate_brd)
-    workflow.set_entry_point("generate_brd")
     workflow.add_node("refine_brd", node.refine_brd)
     workflow.add_node("save_brd", node.save_brd)
 
-    # Add edge to end when complete
+    # Set entry point
+    workflow.set_entry_point("generate_brd")
+
+    # Add regular edge from generate_brd to refine_brd
     workflow.add_edge("generate_brd", "refine_brd")
 
-    workflow.add_edge("refine_brd", "save_brd")
+    # Define conditional edges for refine_brd
+    def route_refinement(state: BRDState) -> str:
+        if state["iteration_count"] < MAX_ITERATIONS:
+            return "continue_refinement"
+        return "refinement_complete"
+
+    workflow.add_conditional_edges(
+        "refine_brd",
+        route_refinement,
+        {"continue_refinement": "refine_brd", "refinement_complete": "save_brd"},
+    )
+
+    # Add edge from save_brd to END
     workflow.add_edge("save_brd", END)
 
     return workflow
@@ -89,6 +109,7 @@ if __name__ == "__main__":
     workflow = create_brd_workflow()
     app = workflow.compile()
 
+    # Generate workflow diagram
     image_bytes = app.get_graph().draw_mermaid_png()
     image = Image.open(io.BytesIO(image_bytes))
     image.save("brd_workflow.png")
@@ -96,6 +117,7 @@ if __name__ == "__main__":
     initial_state = {
         "assessment_text": "SAP sample assessment text... will be replaced with DDA file",
         "brd_content": None,
+        "iteration_count": 0,
     }
 
     result = app.invoke(initial_state)
