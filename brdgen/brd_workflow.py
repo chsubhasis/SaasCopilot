@@ -97,7 +97,7 @@ class BRDGraphNode:
             ]
             brdrag.loadVector(assessment_document_paths)
             result = brdrag.retrieveResult("What is the purpose of the assessment?")
-            rag_result = result[0]
+            rag_result = result[0].page_content
             state["rag_result"] = rag_result
             print("Retrieved vector from RAG")
             return {

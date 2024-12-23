@@ -18,7 +18,9 @@ class BRDExternalTool:
         return result["results"][0]["content"]
 
 
+"""	
 # Below code is for testing only
 if __name__ == "__main__":
     brdtool = BRDExternalTool()
     print(brdtool.search())
+"""

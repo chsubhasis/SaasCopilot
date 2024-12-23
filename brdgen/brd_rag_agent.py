@@ -22,7 +22,10 @@ class BRDRAG:
         self.astra_vector_store = Cassandra(
             embedding=embeddings, table_name="brd_gen", session=None, keyspace=None
         )
-        self.retriever = self.astra_vector_store.as_retriever()
+        self.retriever = self.astra_vector_store.as_retriever(
+            search_type="similarity_score_threshold",
+            search_kwargs={"k": 1, "score_threshold": 0.5},
+        )
 
     def load_documents(self, document_paths: List[str]) -> List[Dict]:
         documents = []
@@ -58,7 +61,7 @@ class BRDRAG:
         print("Inserted %i splits." % len(doc_splits))
 
     def retrieveResult(self, query: str):
-        results = self.retriever.invoke(query, ConsistencyLevel="LOCAL_ONE")
+        results = self.retriever.invoke(query)
         return results
 
 
