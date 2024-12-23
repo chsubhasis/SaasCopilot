@@ -11,14 +11,12 @@ Launch the app python app.py
 #####################################
 
 TODO items:
-- Use rag output in generate_brd
 - FAST API
 - Gradio
-- LangSmith
 - Self Consistancy
-- Logics update
+- Logics update + Use rag output in generate_brd
 - Docker
-- CI CD
+- CICD
 - EC2 deployment
 - Prometheus Grafana
 

@@ -12,3 +12,4 @@ langgraph
 black
 tavily-python
 cassio
+pytest
