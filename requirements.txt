@@ -13,3 +13,4 @@ black
 tavily-python
 cassio
 pytest
+fastembed

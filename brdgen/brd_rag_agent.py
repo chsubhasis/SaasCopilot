@@ -1,7 +1,9 @@
 from langchain_community.vectorstores import Cassandra
 from typing import List, Dict
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader
-from langchain_huggingface import HuggingFaceEmbeddings
+
+# from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import FastEmbedEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import cassio
 
@@ -17,7 +19,8 @@ cassio.init(token=ASTRA_DB_APPLICATION_TOKEN, database_id=ASTRA_DB_ID)
 
 class BRDRAG:
     def __init__(self):
-        embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+        # embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+        embeddings = FastEmbedEmbeddings()
 
         self.astra_vector_store = Cassandra(
             embedding=embeddings, table_name="brd_gen", session=None, keyspace=None
@@ -73,5 +76,6 @@ if __name__ == "__main__":
     ]
     brd_rag.loadVector(assessment_document_paths)
     result = brd_rag.retrieveResult("What is the purpose of the assessment?")
-    print(result[0])
+    pagecontent = result[0].page_content
+    print(pagecontent)
 """
