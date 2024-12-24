@@ -1,3 +1,9 @@
+import os
+import sys
+
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(project_root)
+
 import io
 import os
 
@@ -178,7 +184,9 @@ if __name__ == "__main__":
     image = Image.open(io.BytesIO(image_bytes))
     image.save("brd_workflow.png")
 
-    assessment_text = Utility.extract_text("new_assessment.pdf")  # Sample assessment file
+    assessment_text = Utility.extract_text(
+        "new_assessment.pdf"
+    )  # Sample assessment file
 
     initial_state = {
         "assessment_text": assessment_text,
