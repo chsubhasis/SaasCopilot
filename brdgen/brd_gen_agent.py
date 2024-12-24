@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Tuple
 from mistralai import Mistral
 from langchain_core.prompts import FewShotPromptTemplate, PromptTemplate
 from brd_utility import Utility
@@ -9,64 +9,120 @@ import statistics
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 import brd_prompts as prompts
+from dataclasses import dataclass
 
 load_dotenv()
 
 
+@dataclass
+class ConsistencyMetrics:
+    """Data class for storing BRD consistency analysis results."""
+
+    selected_brd: str
+    average_similarity: float
+    similarity_std: float
+    all_generations: List[str]
+
+
 class BRDGenerator:
+    """
+    Business Requirements Document (BRD) generator using the Mistral API.
+
+    This class handles the generation of BRDs from assessment reports using few-shot learning
+    and self-consistency checking.
+    """
 
     def __init__(
         self,
         api_key: str,
         model: str,
         temperature: float = 0.3,
-        num_samples: int = 2,  # TODO - Finalize the number of samples for self consistency
+        num_samples: int = 2,
         similarity_threshold: float = 0.8,
-    ):
+        example_assessment_paths: Optional[List[str]] = None,
+        example_brd_paths: Optional[List[str]] = None,
+    ) -> None:
+        """
+        Initialize the BRD generator.
+
+        Args:
+            api_key: Mistral API key
+            model: Name of the Mistral model to use
+            temperature: Generation temperature (default: 0.3)
+            num_samples: Number of samples for self-consistency (default: 2)
+            similarity_threshold: Threshold for consistency checking (default: 0.8)
+            example_assessment_paths: Paths to example assessment files
+            example_brd_paths: Paths to example BRD files
+        """
+        if not api_key:
+            raise ValueError("API key is required")
+
         self.client = Mistral(api_key=api_key)
         self.model = model
         self.temperature = temperature
         self.few_shot_examples = []
         self.num_samples = num_samples
         self.similarity_threshold = similarity_threshold
-        self.prompts_dir = "prompts"
+        self.prompts_dir = os.path.join(os.getcwd(), "prompts")
         os.makedirs(self.prompts_dir, exist_ok=True)
 
+        if example_assessment_paths and example_brd_paths:
+            self.load_examples(example_assessment_paths, example_brd_paths)
+
+    # TODO - verify if the assessment and BRD files are at all needed to inject within prompt
+    # This will increase the size of the prompt and may not be necessary
+    # Making this optional for now
     def load_examples(self, assessment_paths: List[str], brd_paths: List[str]) -> None:
+        """Load example assessments and BRDs for few-shot learning."""
+        print("Loading examples...")
         try:
-            self.few_shot_examples = [
-                {
+            examples = []
+            for assess_path, brd_path in zip(assessment_paths, brd_paths):
+                if not os.path.exists(assess_path):
+                    raise FileNotFoundError(f"Assessment file not found: {assess_path}")
+                if not os.path.exists(brd_path):
+                    raise FileNotFoundError(f"BRD file not found: {brd_path}")
+
+                example = {
                     "input": Utility.extract_text(assess_path),
                     "output": Utility.extract_text(brd_path),
                 }
-                for assess_path, brd_path in zip(assessment_paths, brd_paths)
-            ]
+                examples.append(example)
+            self.few_shot_examples = examples
         except Exception as e:
-            raise Exception(f"Error loading examples: {str(e)}")
+            raise RuntimeError(f"Failed to load examples: {str(e)}")
 
     @staticmethod
-    def _create_prompt_templates() -> tuple[PromptTemplate, PromptTemplate]:
+    def _create_prompt_templates() -> Tuple[PromptTemplate, PromptTemplate]:
         """Create example and main prompt templates."""
-        example_prompt = PromptTemplate(
-            input_variables=["input", "output"],
-            template=prompts.EXAMPLE_PROMPT_TEMPLATE,
+        print("Creating prompt templates...")
+        return (
+            PromptTemplate(
+                input_variables=["input", "output"],
+                template=prompts.EXAMPLE_PROMPT_TEMPLATE,
+            ),
+            PromptTemplate(
+                input_variables=["sections", "assessment_report", "rag_context"],
+                template=prompts.MAIN_PROMPT_TEMPLATE,
+            ),
         )
-
-        main_prompt = PromptTemplate(
-            input_variables=["assessment_report", "rag_context"],
-            template=prompts.MAIN_PROMPT_TEMPLATE,
-        )
-
-        return example_prompt, main_prompt
 
     def get_final_prompt(
         self, assessment_text: str, rag_results: Optional[str] = None
     ) -> str:
-        """Generate and return the final prompt without making the API call."""
+        """
+        Generate the final prompt for BRD generation.
+
+        Args:
+            assessment_text: Input assessment text
+            rag_results: Optional RAG context
+
+        Returns:
+            Formatted prompt string
+        """
+        print("Creating final prompt...")
         example_prompt, main_prompt = self._create_prompt_templates()
-        rag_context = (
-            "No additional context available." if rag_results is None else rag_results
-        )
+        rag_context = rag_results or "No additional context available."
 
         few_shot_prompt = FewShotPromptTemplate(
             example_prompt=example_prompt,
@@ -85,9 +141,8 @@ class BRDGenerator:
         )
 
     def save_prompt_to_file(self, prompt: str) -> str:
-        """
-        Save the prompt to a text file with timestamp.
-        """
+        """Save the prompt to a timestamped file."""
+        print("Saving prompt to file...")
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"prompt_{timestamp}.txt"
         filepath = os.path.join(self.prompts_dir, filename)
@@ -101,13 +156,14 @@ class BRDGenerator:
         """Calculate similarity ratio between two texts."""
         return SequenceMatcher(None, text1, text2).ratio()
 
-    def analyze_consistency(self, generations: List[str]) -> Dict:
+    def analyze_consistency(self, generations: List[str]) -> ConsistencyMetrics:
         """
         Analyze consistency among generated BRDs and select the most representative one.
 
         Returns:
             Dict containing the most consistent BRD and consistency metrics
         """
+        print("Analyzing consistency...")
         # Calculate pairwise similarities
         similarities = []
         for i in range(len(generations)):
@@ -127,52 +183,60 @@ class BRDGenerator:
                 [self.calculate_similarity(gen, other) for other in other_gens]
             )
             avg_similarities.append(avg_sim)
-
+        print("avg_similarities", avg_similarities)
         most_consistent_idx = avg_similarities.index(max(avg_similarities))
 
-        return {
-            "selected_brd": generations[most_consistent_idx],
-            "average_similarity": avg_similarity,
-            "similarity_std": std_similarity,
-            "all_generations": generations,
-        }
+        return ConsistencyMetrics(
+            selected_brd=generations[most_consistent_idx],
+            average_similarity=avg_similarity,
+            similarity_std=std_similarity,
+            all_generations=generations,
+        )
 
     def generate_single_brd(self, prompt: str, temperature: float) -> str:
         """Generate a single BRD with given temperature."""
-        response = self.client.chat.complete(
-            model=self.model,
-            messages=[
-                {
-                    "role": "system",
-                    "content": prompts.SYSTEM_MESSAGE,
-                },
-                {"role": "user", "content": prompt},
-            ],
-            temperature=temperature,
-        )
-        return response.choices[0].message.content
+        print(f"Generating single BRD with temperature {temperature}...")
+        try:
+            response = self.client.chat.complete(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": prompts.SYSTEM_MESSAGE},
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=temperature,
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            raise RuntimeError(f"Failed to generate BRD: {str(e)}")
 
     def generate_brd(
         self,
         assessment_text: str,
         rag_results: Optional[str] = None,
         save_prompt: bool = False,
-    ) -> Dict:
+    ) -> ConsistencyMetrics:
         """
-        Generate multiple BRDs using self-consistency and select the most consistent one.
+        Generate multiple BRDs and select the most consistent one.
+
+        Args:
+            assessment_text: Input assessment text
+            rag_results: Optional RAG context
+            save_prompt: Whether to save the prompt to file
 
         Returns:
-            Dict containing the selected BRD and consistency metrics
+            ConsistencyMetrics containing the selected BRD and metrics
         """
+        print("Generating BRD...")
+        if not assessment_text:
+            raise ValueError("Assessment text cannot be empty")
+
         full_prompt = self.get_final_prompt(assessment_text, rag_results)
 
         if save_prompt:
             self.save_prompt_to_file(full_prompt)
 
-        # Generate multiple BRDs with different temperatures
         temperatures = [self.temperature + (i * 0.1) for i in range(self.num_samples)]
 
-        # Use ThreadPoolExecutor for parallel generation
         with ThreadPoolExecutor(max_workers=self.num_samples) as executor:
             generations = list(
                 executor.map(
@@ -180,24 +244,38 @@ class BRDGenerator:
                     temperatures,
                 )
             )
-
-        # Analyze consistency and select the best BRD
-        consistency_results = self.analyze_consistency(generations)
-
-        return consistency_results
+        return self.analyze_consistency(generations)
 
 
+"""	
+# Below is the main function to demonstrate BRD generation
 if __name__ == "__main__":
-    brd_generator = BRDGenerator(
-        api_key=os.getenv("MISTRAL_API"), model="mistral-large-latest"
-    )
-    # Populate rag_results with a list of strings
-    rag_results = [
-        "Additional context from similar projects...",
-        "More additional context...",
-    ]
-    brd_initial_content = brd_generator.generate_brd(
-        "This is a test assessment", rag_results=rag_results, save_prompt=True
-    )
-    # print("brd generated", brd_initial_content["selected_brd"])
-    print("brd generated")
+    #Main function to demonstrate BRD generation.
+    # example_assessments = ["examples/assessment_1.pdf", "examples/assessment_2.pdf"]
+    # example_brds = ["examples/brd_1.docx", "examples/brd_2.docx"]
+    example_assessments = []
+    example_brds = []
+
+    try:
+        brd_generator = BRDGenerator(
+            api_key=os.getenv("MISTRAL_API"),
+            model="mistral-large-latest",
+            # example_assessment_paths=example_assessments,
+            # example_brd_paths=example_brds,
+        )
+
+        rag_results = [
+            "Additional context from similar projects...",
+            "More additional context...",
+        ]
+
+        result = brd_generator.generate_brd(
+            assessment_text="Input assessment text...",  # TODO - replace with actual assessment text
+            rag_results="\n".join(rag_results),
+            save_prompt=True,
+        )
+        print(f"BRD generated with average similarity: {result.average_similarity:.2f}")
+
+    except Exception as e:
+        print(f"Error generating BRD: {str(e)}")
+"""

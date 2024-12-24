@@ -21,14 +21,19 @@ class BRDGraphNode:
         self.brd_generator = brd_generator
 
     def generate_brd(self, state: BRDState) -> BRDState:
+        print("Enter into generate_brd")
         try:
             brd_initial_content = self.brd_generator.generate_brd(
-                state["assessment_text"]
+                assessment_text=state["assessment_text"],
+                rag_results=state["rag_result"],
+                save_prompt=True,
             )
-            print("BRD generated")
+
+            state["brd_content"] = brd_initial_content.selected_brd
+            print("brd generated")
             return {
                 "assessment_text": state["assessment_text"],
-                "brd_content": brd_initial_content,
+                "brd_content": brd_initial_content.selected_brd,
                 "iteration_count": 0,
                 "rag_result": state["rag_result"],
             }
@@ -42,9 +47,13 @@ class BRDGraphNode:
             }
 
     def refine_brd(self, state: BRDState) -> BRDState:
+        print("Enter into refine_brd")
         try:
-            brd_revisor = BRDRevisor(self.brd_generator, state["brd_content"])
+            brd_revisor = BRDRevisor(
+                self.brd_generator, state["brd_content"], state["assessment_text"]
+            )
             brd_revised_content = brd_revisor.refine_brd()
+            state["brd_content"] = brd_revised_content
             print("BRD refined")
             return {
                 "assessment_text": state["assessment_text"],
@@ -62,6 +71,7 @@ class BRDGraphNode:
             }
 
     def save_brd(self, state: BRDState) -> BRDState:
+        print("Enter into save_brd")
         try:
             brd_content = state["brd_content"]
             if brd_content is None:
@@ -74,6 +84,7 @@ class BRDGraphNode:
             return state
 
     def exec_tool_brd(self, state: BRDState) -> BRDState:
+        print("Enter into exec_tool_brd")
         try:
             brdtool = BRDExternalTool()  # TODO Sample Tool. Replace with actual tool
             brd_content_tool = brdtool.search()
@@ -91,6 +102,7 @@ class BRDGraphNode:
             return state
 
     def retrieve_vector(self, state: BRDState) -> BRDState:
+        print("Enter into retrieve_vector")
         try:
             brdrag = BRDRAG()
             assessment_document_paths = [
@@ -123,18 +135,18 @@ def create_brd_workflow() -> StateGraph:
 
     # Add nodes
     workflow.add_node("retrieve_vector", node.retrieve_vector)
-    workflow.add_node("generate_brd", node.generate_brd)
-    workflow.add_node("exec_tool_brd", node.exec_tool_brd)
-    workflow.add_node("self_refine_brd", node.refine_brd)
-    workflow.add_node("save_brd", node.save_brd)
+    workflow.add_node("initial_brd_with_self_consistency", node.generate_brd)
+    workflow.add_node("execute_tools", node.exec_tool_brd)
+    workflow.add_node("self_reflect_brd", node.refine_brd)
+    workflow.add_node("save_final_brd", node.save_brd)
 
     # Set entry point
     workflow.set_entry_point("retrieve_vector")
 
     # Add edges
-    workflow.add_edge("retrieve_vector", "generate_brd")
-    workflow.add_edge("generate_brd", "exec_tool_brd")
-    workflow.add_edge("exec_tool_brd", "self_refine_brd")
+    workflow.add_edge("retrieve_vector", "initial_brd_with_self_consistency")
+    workflow.add_edge("initial_brd_with_self_consistency", "execute_tools")
+    workflow.add_edge("execute_tools", "self_reflect_brd")
 
     # Define conditional edges for refine_brd
     def route_refinement(state: BRDState) -> str:
@@ -143,12 +155,15 @@ def create_brd_workflow() -> StateGraph:
         return "refinement_complete"
 
     workflow.add_conditional_edges(
-        "self_refine_brd",
+        "self_reflect_brd",
         route_refinement,
-        {"continue_refinement": "self_refine_brd", "refinement_complete": "save_brd"},
+        {
+            "continue_refinement": "self_reflect_brd",
+            "refinement_complete": "save_final_brd",
+        },
     )
 
-    workflow.add_edge("save_brd", END)
+    workflow.add_edge("save_final_brd", END)
 
     return workflow
 
@@ -163,8 +178,10 @@ if __name__ == "__main__":
     image = Image.open(io.BytesIO(image_bytes))
     image.save("brd_workflow.png")
 
+    assessment_text = Utility.extract_text("new_assessment.pdf")  # Sample assessment file
+
     initial_state = {
-        "assessment_text": "SAP sample assessment text... will be replaced with DDA file",
+        "assessment_text": assessment_text,
         "brd_content": None,
         "iteration_count": 0,
     }

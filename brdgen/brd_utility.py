@@ -11,6 +11,7 @@ class Utility:
     @staticmethod
     def clean_text(text: str) -> str:
         """Clean and normalize input text."""
+        print("Cleaning text...")
         text = re.sub(r"[\x00-\x1F\x7F-\x9F]", "", text)
         text = unicodedata.normalize("NFKD", text)
         text = re.sub(r"\s+", " ", text)
@@ -20,6 +21,7 @@ class Utility:
     @staticmethod
     def extract_text(file_path: str) -> str:
         """Extract text from PDF or DOCX files."""
+        print(f"Extracting text from {file_path}...")
         _, ext = os.path.splitext(file_path)
 
         try:
@@ -42,6 +44,7 @@ class Utility:
     @staticmethod
     def save_brd(brd_content: str, filename: str = "generated_brd.docx") -> str:
         # TODO: Add markdown to the brd_content
+        print("Saving generated BRD")
         doc = docx.Document()
         doc.add_heading("Generated Business Requirements Document", level=1)
         doc.add_paragraph(brd_content)

@@ -31,6 +31,7 @@ class BRDRAG:
         )
 
     def load_documents(self, document_paths: List[str]) -> List[Dict]:
+        print("Loading documents...")
         documents = []
         for path in document_paths:
             if path.lower().endswith(".pdf"):
@@ -50,6 +51,7 @@ class BRDRAG:
         return documents
 
     def splitDoc(self, documents):
+        print("Splitting documents...")
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=512, chunk_overlap=128
         )
@@ -58,11 +60,13 @@ class BRDRAG:
         return splits
 
     def loadVector(self, assessment_document_paths: List[str]):
+        print("Loading vectors...")
         documents = self.load_documents(assessment_document_paths)
         doc_splits = self.splitDoc(documents)
         self.astra_vector_store.add_documents(doc_splits)
         print("Inserted %i splits." % len(doc_splits))
 
     def retrieveResult(self, query: str):
+        print("Retrieving results...")
         results = self.retriever.invoke(query)
         return results
