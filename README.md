@@ -13,10 +13,10 @@ Launch the app python app.py
 #####################################
 
 TODO items:
-- FAST API
 - Gradio
 - Self Consistancy
 - Logics update + Use rag output in generate_brd
+- FAST API
 - Docker
 - CICD
 - EC2 deployment
