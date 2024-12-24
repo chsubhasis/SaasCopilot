@@ -3,7 +3,7 @@ import os
 
 from brd_gen_agent import BRDGenerator
 from brd_rag_agent import BRDRAG
-from brd_reflection_agent import BRDRevisor
+from brd_reflexion_agent import BRDRevisor
 from brd_state import BRDState
 from brd_tool_executor import BRDExternalTool
 from brd_utility import Utility

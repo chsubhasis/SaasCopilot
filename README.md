@@ -15,8 +15,6 @@ Launch the app python app.py
 #####################################
 
 TODO items:
-- Logics update + Use rag output in generate_brd
-- Self Consistancy
 - Gradio
 
 - FAST API
