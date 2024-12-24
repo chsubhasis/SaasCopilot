@@ -1,13 +1,13 @@
-import docx
-from langchain_core.prompts import PromptTemplate
-from langchain_core.prompts import FewShotPromptTemplate
 import os
-from typing import List
-from mistralai import Mistral
 import re
-import unicodedata
-from brd_utility import Utility
 import traceback
+import unicodedata
+from typing import List
+
+import docx
+from brd_utility import Utility
+from langchain_core.prompts import FewShotPromptTemplate, PromptTemplate
+from mistralai import Mistral
 
 
 class BRDGenerator:

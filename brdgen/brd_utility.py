@@ -1,8 +1,9 @@
+import os
 import re
 import unicodedata
-import os
-from pypdf import PdfReader
+
 import docx
+from pypdf import PdfReader
 
 
 class Utility:

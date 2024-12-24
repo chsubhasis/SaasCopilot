@@ -21,6 +21,12 @@ def test_tool_search():
 
 def test_retrieve_rag():
     brd_rag = BRDRAG()
+    """
+    assessment_document_paths = [
+       'new_assessment.pdf'
+    ]
+    brd_rag.loadVector(assessment_document_paths)
+    """
     result = brd_rag.retrieveResult("What is the purpose of the assessment?")
     pagecontent = result[0].page_content
     # for res in result:

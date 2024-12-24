@@ -1,10 +1,11 @@
 # Sample tool to interact with Tavily API
 # TODO - Implement an actual tool as needed
 
-from tavily import TavilyClient
-import os
 import json
+import os
+
 from dotenv import load_dotenv
+from tavily import TavilyClient
 
 load_dotenv()
 
@@ -16,11 +17,3 @@ class BRDExternalTool:
     def search(self, query="What is the Background of SAP in 50 words?") -> str:
         result = self.client.search(query, limit=1)
         return result["results"][0]["content"]
-
-
-"""	
-# Below code is for testing only
-if __name__ == "__main__":
-    brdtool = BRDExternalTool()
-    print(brdtool.search())
-"""

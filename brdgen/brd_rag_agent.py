@@ -1,14 +1,14 @@
-from langchain_community.vectorstores import Cassandra
-from typing import List, Dict
-from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader
+import os
+from typing import Dict, List
+
+import cassio
+from dotenv import load_dotenv
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import Docx2txtLoader, PyPDFLoader
 
 # from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.embeddings import FastEmbedEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-import cassio
-
-from dotenv import load_dotenv
-import os
+from langchain_community.vectorstores import Cassandra
 
 load_dotenv()
 
@@ -66,16 +66,3 @@ class BRDRAG:
     def retrieveResult(self, query: str):
         results = self.retriever.invoke(query)
         return results
-
-
-"""
-if __name__ == "__main__":
-    brd_rag = BRDRAG()
-    assessment_document_paths = [
-       'new_assessment.pdf'
-    ]
-    brd_rag.loadVector(assessment_document_paths)
-    result = brd_rag.retrieveResult("What is the purpose of the assessment?")
-    pagecontent = result[0].page_content
-    print(pagecontent)
-"""
