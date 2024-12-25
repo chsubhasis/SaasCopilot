@@ -1,5 +1,5 @@
-from brd_gen_agent import BRDGenerator
-import brd_prompts as prompts
+from brdgen.brd_gen_agent import BRDGenerator
+import brdgen.brd_prompts as prompts
 
 
 class BRDRevisor:

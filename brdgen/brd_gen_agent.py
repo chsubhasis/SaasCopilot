@@ -1,15 +1,16 @@
 from typing import List, Optional, Dict, Tuple
 from mistralai import Mistral
 from langchain_core.prompts import FewShotPromptTemplate, PromptTemplate
-from brd_utility import Utility
+from brdgen.brd_utility import Utility
 from datetime import datetime
 import os
 from difflib import SequenceMatcher
 import statistics
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
-import brd_prompts as prompts
+import brdgen.brd_prompts as prompts
 from dataclasses import dataclass
+from tenacity import retry, wait_exponential, stop_after_attempt
 
 load_dotenv()
 
@@ -37,7 +38,7 @@ class BRDGenerator:
         api_key: str,
         model: str,
         temperature: float = 0.3,
-        num_samples: int = 2,
+        num_samples: int = 2,  # Number of samples for self-consistency
         similarity_threshold: float = 0.8,
         example_assessment_paths: Optional[List[str]] = None,
         example_brd_paths: Optional[List[str]] = None,
@@ -193,6 +194,11 @@ class BRDGenerator:
             all_generations=generations,
         )
 
+    @retry(
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+        stop=stop_after_attempt(5),
+        # if needed use retry_if_exception_message
+    )
     def generate_single_brd(self, prompt: str, temperature: float) -> str:
         """Generate a single BRD with given temperature."""
         print(f"Generating single BRD with temperature {temperature}...")
@@ -236,7 +242,15 @@ class BRDGenerator:
             self.save_prompt_to_file(full_prompt)
 
         temperatures = [self.temperature + (i * 0.1) for i in range(self.num_samples)]
+        generations = []
 
+        # Generate BRDs at different temperatures - sequential
+        """
+        for temp in temperatures:
+            generations.append(self.generate_single_brd(full_prompt, temp))
+        """
+
+        # Generate BRDs at different temperatures - parallel
         with ThreadPoolExecutor(max_workers=self.num_samples) as executor:
             generations = list(
                 executor.map(
@@ -244,6 +258,7 @@ class BRDGenerator:
                     temperatures,
                 )
             )
+
         return self.analyze_consistency(generations)
 
 

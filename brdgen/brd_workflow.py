@@ -5,21 +5,21 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_root)
 
 import io
-import os
+from typing import List, Optional, Dict, Tuple
 
-from brd_gen_agent import BRDGenerator
-from brd_rag_agent import BRDRAG
-from brd_reflexion_agent import BRDRevisor
-from brd_state import BRDState
-from brd_tool_executor import BRDExternalTool
-from brd_utility import Utility
+from brdgen.brd_gen_agent import BRDGenerator
+from brdgen.brd_rag_agent import BRDRAG
+from brdgen.brd_reflexion_agent import BRDRevisor
+from brdgen.brd_state import BRDState
+from brdgen.brd_tool_executor import BRDExternalTool
+from brdgen.brd_utility import Utility
 from dotenv import load_dotenv
 from langgraph.graph import END, START, StateGraph
 from PIL import Image
 
 load_dotenv()
 MODEL = "mistral-large-latest"
-MAX_ITERATIONS = 2  # For self critic
+MAX_ITERATIONS = 1  # For self critic.. increase if needed
 
 
 class BRDGraphNode:
@@ -32,7 +32,7 @@ class BRDGraphNode:
             brd_initial_content = self.brd_generator.generate_brd(
                 assessment_text=state["assessment_text"],
                 rag_results=state["rag_result"],
-                save_prompt=True,
+                save_prompt=False,
             )
 
             state["brd_content"] = brd_initial_content.selected_brd
@@ -84,6 +84,7 @@ class BRDGraphNode:
                 raise ValueError("BRD content is empty")
             brd_path = Utility.save_brd(brd_content)
             print(f"BRD saved at: {brd_path}")
+            state["brd_file_path"] = brd_path
             return state
         except Exception as e:
             print(e)
@@ -111,10 +112,14 @@ class BRDGraphNode:
         print("Enter into retrieve_vector")
         try:
             brdrag = BRDRAG()
-            assessment_document_paths = [
-                "new_assessment.pdf"  # TODO - replace with actual path
+            # assessment_document_paths = [
+            #    "new_assessment.pdf"  # TODO - replace with actual path
+            # ]
+            assessment_document_contents = [
+                state["assessment_text"]
+                # TODO - update this with other contents provided as input
             ]
-            brdrag.loadVector(assessment_document_paths)
+            brdrag.load_documents_from_content(assessment_document_contents)
             result = brdrag.retrieveResult("What is the purpose of the assessment?")
             rag_result = result[0].page_content
             state["rag_result"] = rag_result
@@ -174,6 +179,35 @@ def create_brd_workflow() -> StateGraph:
     return workflow
 
 
+def initiate_workflow(
+    assessment_file,
+    user_feedback: Optional[str] = None,  # This will be needed for human in the loop
+    brd_content: Optional[str] = None,
+):
+    print("Initiating BRD workflow")
+    workflow = create_brd_workflow()
+    app = workflow.compile()
+
+    # Generate workflow diagram
+    image_bytes = app.get_graph().draw_mermaid_png()
+    image = Image.open(io.BytesIO(image_bytes))
+    image.save("brd_workflow.png")
+
+    assessment_text = Utility.extract_text(assessment_file.name)
+
+    initial_state = {
+        "assessment_text": assessment_text,
+        "brd_content": brd_content,
+        "iteration_count": 0,
+        "user_feedback": user_feedback,
+    }
+
+    result = app.invoke(initial_state)
+    print("BRD workflow completed")
+    return result["brd_content"], result["brd_file_path"]
+
+
+"""
 # Example usage
 if __name__ == "__main__":
     workflow = create_brd_workflow()
@@ -196,3 +230,4 @@ if __name__ == "__main__":
 
     result = app.invoke(initial_state)
     print("BRD workflow completed")
+"""

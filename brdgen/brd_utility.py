@@ -21,7 +21,6 @@ class Utility:
     @staticmethod
     def extract_text(file_path: str) -> str:
         """Extract text from PDF or DOCX files."""
-        print(f"Extracting text from {file_path}...")
         _, ext = os.path.splitext(file_path)
 
         try:

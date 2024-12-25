@@ -14,14 +14,9 @@ Launch the app python app.py
 #####################################
 
 TODO items:
-- Gradio
-
-- FAST API
-- Docker
-- CICD
-- EC2 deployment
-- Prometheus Grafana
-
-Review below:
-- STATE to be managed centrally from workflow file. Not from other py classes/agents.
-- 
+- PyTest updates. Bring outside. - 12/27
+- FAST API - 12/27
+- Docker - 12/28
+- CICD - 12/29
+- EC2 deployment - 12/30
+- Prometheus Grafana - 12/30

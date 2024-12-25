@@ -5,6 +5,7 @@ import cassio
 from dotenv import load_dotenv
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import Docx2txtLoader, PyPDFLoader
+from langchain.schema import Document
 
 # from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.embeddings import FastEmbedEmbeddings
@@ -30,8 +31,20 @@ class BRDRAG:
             search_kwargs={"k": 1, "score_threshold": 0.5},
         )
 
-    def load_documents(self, document_paths: List[str]) -> List[Dict]:
-        print("Loading documents...")
+    def load_documents_from_content(self, document_contents: List[str]) -> List[Dict]:
+        print("Loading documents from file contents...")
+        documents = []
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+
+        for content in document_contents:
+            doc = Document(page_content=content, metadata={})
+            split_docs = text_splitter.split_documents([doc])
+            documents.extend(split_docs)
+
+        return documents
+
+    def load_documents_from_path(self, document_paths: List[str]) -> List[Dict]:
+        print("Loading documents from file paths...")
         documents = []
         for path in document_paths:
             if path.lower().endswith(".pdf"):
