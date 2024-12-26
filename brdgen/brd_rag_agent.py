@@ -1,15 +1,15 @@
 import os
 from typing import Dict, List
 
-import cassio
-from dotenv import load_dotenv
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import Docx2txtLoader, PyPDFLoader
-from langchain.schema import Document
+import cassio  # type: ignore
+from dotenv import load_dotenv  # type: ignore
+from langchain.text_splitter import RecursiveCharacterTextSplitter  # type: ignore
+from langchain_community.document_loaders import Docx2txtLoader, PyPDFLoader  # type: ignore
+from langchain.schema import Document  # type: ignore
 
 # from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.embeddings import FastEmbedEmbeddings
-from langchain_community.vectorstores import Cassandra
+from langchain_community.embeddings import FastEmbedEmbeddings  # type: ignore
+from langchain_community.vectorstores import Cassandra  # type: ignore
 
 load_dotenv()
 

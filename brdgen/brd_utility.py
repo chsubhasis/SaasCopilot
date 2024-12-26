@@ -2,8 +2,8 @@ import os
 import re
 import unicodedata
 
-import docx
-from pypdf import PdfReader
+import docx  # type: ignore
+from pypdf import PdfReader  # type: ignore
 
 
 class Utility:

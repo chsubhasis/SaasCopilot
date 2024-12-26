@@ -14,3 +14,7 @@ tavily-python
 cassio
 pytest
 fastembed
+fastapi
+fastapi-cli
+pydantic
+pydantic-settings

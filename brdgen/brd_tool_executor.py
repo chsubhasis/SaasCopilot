@@ -4,8 +4,8 @@
 import json
 import os
 
-from dotenv import load_dotenv
-from tavily import TavilyClient
+from dotenv import load_dotenv  # type: ignore
+from tavily import TavilyClient  # type: ignore
 
 load_dotenv()
 

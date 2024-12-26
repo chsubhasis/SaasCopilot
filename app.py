@@ -1,13 +1,17 @@
-import gradio as gr
+import gradio as gr  # type: ignore
 from brdgen.brd_workflow import initiate_workflow
 import threading
 from queue import Queue
+from brdgen.brd_utility import Utility
 
 
 def generate_new_BRD(assessment_file):
     try:
         print("generate_new_BRD")
-        brd_content, brd_file_path = initiate_workflow(assessment_file)
+        assessment_text_gradio = Utility.extract_text(assessment_file.name)
+        brd_content, brd_file_path = initiate_workflow(
+            assessment_text=assessment_text_gradio
+        )
         return brd_content, brd_file_path
     except Exception as e:
         print(e)

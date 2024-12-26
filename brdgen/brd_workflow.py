@@ -1,20 +1,17 @@
 import os
-import sys
+import io
+from typing import Optional
+from brdgen.brd_gen_agent import BRDGenerator
+
+from brdgen.brd_rag_agent import BRDRAG
 
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(project_root)
-
-import io
-from typing import List, Optional, Dict, Tuple
-
-from brdgen.brd_gen_agent import BRDGenerator
-from brdgen.brd_rag_agent import BRDRAG
 from brdgen.brd_reflexion_agent import BRDRevisor
 from brdgen.brd_state import BRDState
 from brdgen.brd_tool_executor import BRDExternalTool
 from brdgen.brd_utility import Utility
-from dotenv import load_dotenv
-from langgraph.graph import END, START, StateGraph
+from dotenv import load_dotenv  # type: ignore
+from langgraph.graph import END, StateGraph  # type: ignore
 from PIL import Image
 
 load_dotenv()
@@ -180,7 +177,7 @@ def create_brd_workflow() -> StateGraph:
 
 
 def initiate_workflow(
-    assessment_file,
+    assessment_text,  # This may be a list of strings if multiple assessment contents are provided
     user_feedback: Optional[str] = None,  # This will be needed for human in the loop
     brd_content: Optional[str] = None,
 ):
@@ -193,7 +190,7 @@ def initiate_workflow(
     image = Image.open(io.BytesIO(image_bytes))
     image.save("brd_workflow.png")
 
-    assessment_text = Utility.extract_text(assessment_file.name)
+    # assessment_text = Utility.extract_text(assessment_file.name)
 
     initial_state = {
         "assessment_text": assessment_text,
