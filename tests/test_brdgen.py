@@ -5,14 +5,14 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_root)
 
 import pytest
-from brd_utility import Utility
-from brd_tool_executor import BRDExternalTool
-from brd_rag_agent import BRDRAG
-from brd_gen_agent import BRDGenerator
+from brdgen.brd_utility import Utility
+from brdgen.brd_tool_executor import BRDExternalTool
+from brdgen.brd_rag_agent import BRDRAG
+from brdgen.brd_gen_agent import BRDGenerator
 
 
 def test_text_extract():
-    test_file = os.path.join("brdgen/tests/test_files", "test_pdf.pdf")
+    test_file = os.path.join(project_root, "tests/test_files", "test_pdf.pdf")
     result = Utility.extract_text(test_file)
     assert isinstance(result, str)
     assert len(result) > 0

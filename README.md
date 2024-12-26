@@ -14,7 +14,6 @@ Launch the app python app.py
 #####################################
 
 TODO items:
-- PyTest updates. Bring outside. - 12/27
 - FAST API - 12/27
 - Docker - 12/28
 - CICD - 12/29
