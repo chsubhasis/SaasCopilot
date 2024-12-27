@@ -5,7 +5,9 @@ FROM python:3.12
 ADD . .
 
 # specify working directory
-WORKDIR /SaasCoplit
+#WORKDIR /SaasCoplit
+
+#COPY . .
 
 # update pip
 RUN pip install --upgrade pip
