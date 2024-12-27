@@ -25,7 +25,7 @@ jobs:
     - name: Verify Docker User and Build Image
       run: |
         echo "DOCKER_USER: $DOCKER_USER"  # Debugging step
-        docker build . -t $DOCKER_USER/saascopilot:copilot_humaniz
+        docker build . -t chsubhasis/saascopilot
 
     - name: Push the Docker Image
       run: docker push $DOCKER_USER/saascopilot
