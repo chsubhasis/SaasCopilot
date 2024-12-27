@@ -23,11 +23,15 @@ jobs:
       run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin
 
     - name: Verify Docker User and Build Image
+      env:
+        DOCKER_USER: ${{ secrets.DOCKER_USER_NAME }}
       run: |
         echo "DOCKER_USER: $DOCKER_USER"  # Debugging step
-        docker build . -t chsubhasis/saascopilot
+        docker build . -t $DOCKER_USER/saascopilot
 
     - name: Push the Docker Image
+      env:
+        DOCKER_USER: ${{ secrets.DOCKER_USER_NAME }}
       run: docker push $DOCKER_USER/saascopilot
 
     - name: Logout from Docker
