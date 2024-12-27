@@ -14,16 +14,16 @@ jobs:
        DOCKER_USER: ${{ secrets.DOCKER_USER_NAME }}
        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASS_TOKEN }}
       run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-        
+    
     - name: Build the Docker image for saas copilot app
       env:
        DOCKER_USER: ${{ secrets.DOCKER_USER_NAME }}
-      run: docker build -t $DOCKER_USER/saascopilot:copilot_humanize
-        
+      run: docker build -t $DOCKER_USER/saascopilot:copilot_humanize .
+    
     - name: Push the Docker Image
       env:
         DOCKER_USER: ${{ secrets.DOCKER_USER_NAME }}
       run: docker push $DOCKER_USER/saascopilot:copilot_humanize
-        
-    - name: Logout to Docker
+    
+    - name: Logout from Docker
       run: docker logout
