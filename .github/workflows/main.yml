@@ -22,8 +22,10 @@ jobs:
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASS_TOKEN }}
       run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin
 
-    - name: Build the Docker image for saas copilot app
-      run: docker build . -t $DOCKER_USER/saascopilot
+    - name: Verify Docker User and Build Image
+      run: |
+        echo "DOCKER_USER: $DOCKER_USER"  # Debugging step
+        docker build . -t $DOCKER_USER/saascopilot:copilot_humaniz
 
     - name: Push the Docker Image
       run: docker push $DOCKER_USER/saascopilot
