@@ -16,11 +16,6 @@ jobs:
         python-version: '3.12'
     - name: Install dependencies
       run: pip install -r requirements.txt
-    - uses: actions/upload-artifact@v4
-      with:
-        name: my-pipeline
-        path: /tests/*.pkl
-        retention-days: 1
         
     
   build:
@@ -32,9 +27,6 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: '3.12'
-    - uses: actions/download-artifact@v4
-      with:
-        name: my-pipeline
     - name: Install dependencies
       run: pip install --upgrade build
     - name: Build package
@@ -51,7 +43,6 @@ jobs:
     steps:
     - name: Repo Checkout
       uses: actions/checkout@v4
-        
     - uses: actions/download-artifact@v4
       with:
         name: my-build-package
