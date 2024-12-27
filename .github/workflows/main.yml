@@ -18,7 +18,7 @@ jobs:
     - name: Build the Docker image for saas copilot app
       env:
        DOCKER_USER: ${{ secrets.DOCKER_USER_NAME }}
-      run: docker build . -f Dockerfile -t $DOCKER_USER/saascopilot:copilot_humanize
+      run: docker build -t $DOCKER_USER/saascopilot:copilot_humanize
         
     - name: Push the Docker Image
       env:
