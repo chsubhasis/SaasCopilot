@@ -19,7 +19,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: my-pipeline
-        path: brdgen/*.pkl
+        path: /tests/*.pkl
         retention-days: 1
         
     
