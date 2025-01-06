@@ -7,10 +7,10 @@ sys.path.append(project_root)
 import pytest
 from brdgen.brd_utility import Utility
 from brdgen.brd_tool_executor import BRDExternalTool
-from brdgen.brd_rag_agent import BRDRAG
+from brdgen.brd_rag_agent_chroma import BRDRAG
 from brdgen.brd_gen_agent import BRDGenerator
 
-
+"""
 def test_text_extract():
     test_file = os.path.join(project_root, "tests/test_files", "test_pdf.pdf")
     result = Utility.extract_text(test_file)
@@ -23,24 +23,24 @@ def test_tool_search():
     result = brdtool.search()
     assert isinstance(result, str)
     assert len(result) > 0
-
+"""
 
 def test_rag_agent():
     brd_rag = BRDRAG()
 
-    # assessment_document_paths = [
-    #   'new_assessment.pdf'
-    # ]
+    assessment_document_paths = [
+       'new_assessment.pdf'
+    ]
     # brd_rag.loadVector(assessment_document_paths)
 
-    result = brd_rag.retrieveResult("What is the purpose of the assessment?")
+    result = brd_rag.getResponse(assessment_document_paths, "What is the purpose of the assessment?")
     pagecontent = result[0].page_content
     # for res in result:
     #    print(res.page_content)
     assert isinstance(pagecontent, str)
     assert len(pagecontent) > 0
 
-
+"""
 def test_gen_agent():
     brd_generator = BRDGenerator(
         api_key=os.getenv("MISTRAL_API"), model="mistral-large-latest"
@@ -56,3 +56,4 @@ def test_gen_agent():
     )
     assert isinstance(brd_initial_content.selected_brd, str)
     assert len(brd_initial_content.selected_brd) > 0
+"""

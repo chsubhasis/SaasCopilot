@@ -3,15 +3,15 @@ import io
 from typing import Optional
 from brdgen.brd_gen_agent import BRDGenerator
 
-from brdgen.brd_rag_agent import BRDRAG
+from brdgen.brd_rag_agent_chroma import BRDRAG
 
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 from brdgen.brd_reflexion_agent import BRDRevisor
 from brdgen.brd_state import BRDState
 from brdgen.brd_tool_executor import BRDExternalTool
 from brdgen.brd_utility import Utility
-from dotenv import load_dotenv  # type: ignore
-from langgraph.graph import END, StateGraph  # type: ignore
+from dotenv import load_dotenv
+from langgraph.graph import END, StateGraph
 from PIL import Image
 
 load_dotenv()
@@ -107,6 +107,7 @@ class BRDGraphNode:
 
     def retrieve_vector(self, state: BRDState) -> BRDState:
         print("Enter into retrieve_vector")
+        
         try:
             brdrag = BRDRAG()
             # assessment_document_paths = [
@@ -116,8 +117,8 @@ class BRDGraphNode:
                 state["assessment_text"]
                 # TODO - update this with other contents provided as input
             ]
-            brdrag.load_documents_from_content(assessment_document_contents)
-            result = brdrag.retrieveResult("What is the purpose of the assessment?")
+           
+            result = brdrag.getResponse(assessment_document_contents, "What is the purpose of the assessment?")
             rag_result = result[0].page_content
             state["rag_result"] = rag_result
             print("Retrieved vector from RAG")
@@ -131,7 +132,7 @@ class BRDGraphNode:
         except Exception as e:
             print(e)
             return state
-
+        
 
 def create_brd_workflow() -> StateGraph:
     # Initialize components

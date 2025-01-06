@@ -1,20 +1,14 @@
-python-docx
-PyPDF2
-pypdf
-gradio
-mistralai
-langchain_community
-torch
-transformers
-sentence-transformers
-langchain_huggingface
-langgraph
-black
-tavily-python
-cassio
-pytest
-fastembed
-fastapi
-fastapi-cli
-pydantic
+gradio # not needed if some other UI lib is used
+mistralai # not needed if openai is used
+langchain_core # for PromptTemplate
+python-docx # for doc parsing
+pypdf # for pdf parsing
+python-dotenv # for env vars
+#cassio # for astra db access
+tavily-python # for web search tool
+langgraph # for agent graph
 pydantic-settings
+pytest # for testing
+langchain_community # for PyPDFLoader, Docx2txtLoader
+langchain_huggingface # for HuggingFaceEmbeddings in Chroma
+langchain_chroma # for Chroma

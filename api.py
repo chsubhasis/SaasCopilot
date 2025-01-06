@@ -7,7 +7,7 @@ import os
 import pathlib
 import uuid
 
-from brdgen.brd_rag_agent import BRDRAG
+#from brdgen.brd_rag_agent import BRDRAG
 from brdgen.brd_utility import Utility
 from brdgen.brd_workflow import initiate_workflow
 from fastapi import APIRouter, UploadFile, File, BackgroundTasks  # type: ignore
@@ -83,7 +83,9 @@ def search_Tool() -> Any:
     return BRDExternalTool().search()
 
 
+"""
 @api_router.get("/searchRAG", status_code=200)
 def search_RAG() -> Any:
     result = BRDRAG().retrieveResult("What is the purpose of the assessment?")
     return result[0].page_content
+""" 
