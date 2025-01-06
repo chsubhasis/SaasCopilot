@@ -7,14 +7,15 @@ from langchain_chroma import Chroma
 import torch
 import re, unicodedata, os
 
+
 class BRDRAG:
     def load_documents(self, document_paths: List[str]) -> List[Dict]:
         documents = []
 
         for path in document_paths:
-            if path.lower().endswith('.pdf'):
+            if path.lower().endswith(".pdf"):
                 loader = PyPDFLoader(path)
-            elif path.lower().endswith(('.docx', '.doc')):
+            elif path.lower().endswith((".docx", ".doc")):
                 loader = Docx2txtLoader(path)
             else:
                 print(f"Unsupported file type: {path}")
@@ -22,8 +23,7 @@ class BRDRAG:
 
             docs = loader.load()
             text_splitter = RecursiveCharacterTextSplitter(
-                chunk_size=500,
-                chunk_overlap=50
+                chunk_size=500, chunk_overlap=50
             )
             documents.extend(text_splitter.split_documents(docs))
 
@@ -32,54 +32,55 @@ class BRDRAG:
     def splitDoc(self, documents):
 
         text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size = 512,
-        chunk_overlap = 128
+            chunk_size=512, chunk_overlap=128
         )
 
         splits = text_splitter.split_documents(documents)
         return splits
 
-    def getEmbedding(self, ):
-        modelPath="mixedbread-ai/mxbai-embed-large-v1"
+    def getEmbedding(
+        self,
+    ):
+        modelPath = "mixedbread-ai/mxbai-embed-large-v1"
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        model_kwargs = {'device': device}      # cuda/cpu
-        encode_kwargs = {'normalize_embeddings': False}
+        model_kwargs = {"device": device}  # cuda/cpu
+        encode_kwargs = {"normalize_embeddings": False}
 
-        embedding =  HuggingFaceEmbeddings(
-            model_name=modelPath,     
-            model_kwargs=model_kwargs, 
-            encode_kwargs=encode_kwargs 
+        embedding = HuggingFaceEmbeddings(
+            model_name=modelPath, model_kwargs=model_kwargs, encode_kwargs=encode_kwargs
         )
         return embedding
 
     def is_chroma_db_present(self, directory: str):
-        #Check if the directory exists and contains any files.
+        # Check if the directory exists and contains any files.
         return os.path.exists(directory) and len(os.listdir(directory)) > 0
 
-    def getResponse(self, assessment_document_paths: List[str], query: str) -> str:        
+    def getResponse(self, assessment_document_paths: List[str], query: str) -> str:
         documents = self.load_documents(assessment_document_paths)
         splits = self.splitDoc(documents)
         embeddings = self.getEmbedding()
-        persist_directory = 'docs/chroma/'
+        persist_directory = "docs/chroma/"
 
         if self.is_chroma_db_present(persist_directory):
-            print(f"Chroma vector DB found in '{persist_directory}' and will be loaded.")
+            print(
+                f"Chroma vector DB found in '{persist_directory}' and will be loaded."
+            )
             # Load vector store from the local directory
             vectordb = Chroma(
-                persist_directory=persist_directory, 
-                embedding_function=self.getEmbedding()
-                )
+                persist_directory=persist_directory,
+                embedding_function=self.getEmbedding(),
+            )
         else:
             vectordb = Chroma.from_documents(
-                documents=splits, # splits we created earlier
+                documents=splits,  # splits we created earlier
                 embedding=embeddings,
-                persist_directory=persist_directory # save the directory
-                )
+                persist_directory=persist_directory,  # save the directory
+            )
 
         question = query
-        docs = vectordb.search(question, search_type="mmr", k=5)    
+        docs = vectordb.search(question, search_type="mmr", k=5)
         response = ""
         for i in range(len(docs)):
             response = response + docs[i].page_content
 
-        return(response)
+        return response

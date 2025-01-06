@@ -107,7 +107,7 @@ class BRDGraphNode:
 
     def retrieve_vector(self, state: BRDState) -> BRDState:
         print("Enter into retrieve_vector")
-        
+
         try:
             brdrag = BRDRAG()
             # assessment_document_paths = [
@@ -117,22 +117,24 @@ class BRDGraphNode:
                 state["assessment_text"]
                 # TODO - update this with other contents provided as input
             ]
-           
-            result = brdrag.getResponse(assessment_document_contents, "What is the purpose of the assessment?")
-            rag_result = result[0].page_content
-            state["rag_result"] = rag_result
+
+            result = brdrag.getResponse(
+                assessment_document_contents, "What is the purpose of the assessment?"
+            )
+            # rag_result = result[0].page_content
+            state["rag_result"] = result
             print("Retrieved vector from RAG")
             return {
                 "assessment_text": state["assessment_text"],
                 "brd_content": state["brd_content"],
                 "iteration_count": state["iteration_count"],
-                "rag_result": rag_result,
+                "rag_result": result,
             }
             return state
         except Exception as e:
             print(e)
             return state
-        
+
 
 def create_brd_workflow() -> StateGraph:
     # Initialize components
