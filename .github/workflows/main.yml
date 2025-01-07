@@ -27,12 +27,12 @@ jobs:
         DOCKER_USER: ${{ secrets.DOCKER_USER_NAME }}
       run: |
         echo "DOCKER_USER: $DOCKER_USER"  # Debugging step
-        docker build . -t $DOCKER_USER/saascopilot
+        docker build . -t $DOCKER_USER/saascopilothuman
 
     - name: Push the Docker Image
       env:
         DOCKER_USER: ${{ secrets.DOCKER_USER_NAME }}
-      run: docker push $DOCKER_USER/saascopilot
+      run: docker push $DOCKER_USER/saascopilothuman
 
     - name: Logout from Docker
       run: docker logout
