@@ -11,3 +11,6 @@ spec:
     image: chsubhasis/saascopilot
     ports:
       - containerPort: 8001
+    envFrom:
+      - secretRef:
+          name: my-api-keys
