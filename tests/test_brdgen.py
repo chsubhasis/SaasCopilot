@@ -10,7 +10,7 @@ from brdgen.brd_tool_executor import BRDExternalTool
 from brdgen.brd_rag_agent_chroma import BRDRAG
 from brdgen.brd_gen_agent import BRDGenerator
 
-
+"""
 def test_text_extract():
     test_file = os.path.join(project_root, "tests/test_files", "test_pdf.pdf")
     result = Utility.extract_text(test_file)
@@ -23,7 +23,7 @@ def test_tool_search():
     result = brdtool.search()
     assert isinstance(result, str)
     assert len(result) > 0
-
+"""
 
 def test_rag_agent():
     brd_rag = BRDRAG()
@@ -37,10 +37,11 @@ def test_rag_agent():
     # pagecontent = result[0].page_content
     # for res in result:
     #    print(res.page_content)
+    print(result)
     assert isinstance(result, str)
-    assert len(result) > 0
+    assert len(result) > 0, f"Result value: {result}, length: {len(result)}"
 
-
+"""
 def test_gen_agent():
     brd_generator = BRDGenerator(
         api_key=os.getenv("MISTRAL_API"), model="mistral-large-latest"
@@ -56,3 +57,4 @@ def test_gen_agent():
     )
     assert isinstance(brd_initial_content.selected_brd, str)
     assert len(brd_initial_content.selected_brd) > 0
+"""

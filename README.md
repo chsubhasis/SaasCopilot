@@ -12,3 +12,8 @@ docker images
 Install the dependencies. pip install -r requirements.txt
 
 Launch the app python app.py
+
+Issue with ChromaDB on windows - https://github.com/pypa/packaging-problems/issues/648
+https://visualstudio.microsoft.com/visual-cpp-build-tools/
+
+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

@@ -1,22 +1,14 @@
 # pull python base image
-FROM python:3.12
+FROM python:3.12-slim
 
-# copy application files
-ADD . .
+COPY requirements.txt .
 
-# specify working directory
-#WORKDIR /SaasCoplit
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    rm -rf /root/.cache/pip/*
 
-#COPY . .
+COPY . .
 
-# update pip
-RUN pip install --upgrade pip
-
-# install dependencies
-RUN pip install -r requirements.txt
-
-# expose port for application
 EXPOSE 8001
 
-# start gradio application
 CMD ["python", "app.py"]

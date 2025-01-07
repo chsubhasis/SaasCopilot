@@ -1,12 +1,16 @@
 from typing import List, Dict
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.embeddings import FastEmbedEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_huggingface import HuggingFaceEndpoint
 from langchain_chroma import Chroma
+from langchain.schema import Document
 import torch
 import re, unicodedata, os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 class BRDRAG:
     def load_documents(self, document_paths: List[str]) -> List[Dict]:
@@ -28,6 +32,16 @@ class BRDRAG:
             documents.extend(text_splitter.split_documents(docs))
 
         return documents
+    
+    def load_documents_content(self, content: str) -> List[Document]:
+        
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=500, 
+            chunk_overlap=50
+        )
+        chunks = text_splitter.split_text(content)
+        documents = [Document(page_content=chunk) for chunk in chunks]
+        return documents
 
     def splitDoc(self, documents):
 
@@ -41,6 +55,7 @@ class BRDRAG:
     def getEmbedding(
         self,
     ):
+        """
         modelPath = "mixedbread-ai/mxbai-embed-large-v1"
         device = "cuda" if torch.cuda.is_available() else "cpu"
         model_kwargs = {"device": device}  # cuda/cpu
@@ -49,14 +64,18 @@ class BRDRAG:
         embedding = HuggingFaceEmbeddings(
             model_name=modelPath, model_kwargs=model_kwargs, encode_kwargs=encode_kwargs
         )
-        return embedding
+        """
+        
+        embeddings = FastEmbedEmbeddings()
+        return embeddings
+
 
     def is_chroma_db_present(self, directory: str):
         # Check if the directory exists and contains any files.
         return os.path.exists(directory) and len(os.listdir(directory)) > 0
 
-    def getResponse(self, assessment_document_paths: List[str], query: str) -> str:
-        documents = self.load_documents(assessment_document_paths)
+    def getResponse(self, assessment_document_content: str, query: str) -> str:
+        documents = self.load_documents_content(assessment_document_content)
         splits = self.splitDoc(documents)
         embeddings = self.getEmbedding()
         persist_directory = "docs/chroma/"

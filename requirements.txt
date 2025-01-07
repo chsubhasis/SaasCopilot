@@ -11,4 +11,7 @@ pydantic-settings
 pytest # for testing
 langchain_community # for PyPDFLoader, Docx2txtLoader
 langchain_huggingface # for HuggingFaceEmbeddings in Chroma
+setuptools # for Chroma in windows
+chroma
 langchain_chroma # for Chroma
+fastembed # for FastEmbedEmbeddings

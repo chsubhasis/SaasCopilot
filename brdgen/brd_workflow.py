@@ -110,18 +110,9 @@ class BRDGraphNode:
 
         try:
             brdrag = BRDRAG()
-            # assessment_document_paths = [
-            #    "new_assessment.pdf"  # TODO - replace with actual path
-            # ]
-            assessment_document_contents = [
-                state["assessment_text"]
-                # TODO - update this with other contents provided as input
-            ]
-
             result = brdrag.getResponse(
-                assessment_document_contents, "What is the purpose of the assessment?"
+                state["assessment_text"], "What is the purpose of the assessment?"
             )
-            # rag_result = result[0].page_content
             state["rag_result"] = result
             print("Retrieved vector from RAG")
             return {
