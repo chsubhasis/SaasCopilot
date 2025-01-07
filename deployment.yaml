@@ -13,8 +13,7 @@ spec:
         app: saas-pod
     spec:
       containers:
-      #- image: chsubhasis/saascopilot
-       - image: ramirk/titanic-fastapi
+       - image: chsubhasis/saascopilot
         name: mysaascontainer
         ports:
         - containerPort: 8001
