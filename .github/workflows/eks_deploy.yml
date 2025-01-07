@@ -32,7 +32,7 @@ jobs:
       run: |
         curl --silent --location "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
         sudo mv /tmp/eksctl /usr/local/bin   
-    - name: Create EKS cluster
+    - name: Create EKS cluster # NOT NEEDED. Create Cluster outside.
       run: |
         eksctl create cluster \
           --name=r4cluster \
