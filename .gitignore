@@ -16,6 +16,8 @@ docs/chroma
 
 *.pem
 
+*.zip
+
 # Distribution / packaging
 .Python
 build/
