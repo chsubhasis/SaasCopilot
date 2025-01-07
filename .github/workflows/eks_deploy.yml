@@ -1,5 +1,4 @@
 name: EKS Deployment
-
 on:
   workflow_run:
     workflows: ["CI Pipeline"] # This refers to the name of the first workflow
