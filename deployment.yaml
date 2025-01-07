@@ -14,9 +14,9 @@ spec:
     spec:
       containers:
        - image: chsubhasis/saascopilot
-        name: mysaascontainer
-        ports:
-        - containerPort: 8001
+         name: mysaascontainer
+         ports:
+         - containerPort: 8001
 ---
 apiVersion: v1
 kind: Service
